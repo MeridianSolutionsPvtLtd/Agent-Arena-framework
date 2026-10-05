@@ -1,0 +1,74 @@
+fastapi
+uvicorn[standard]
+python-dotenv
+motor
+pymongo
+pyjwt
+python-multipart
+pydantic-settings
+pydantic[email]
+cryptography
+requests
+httpx
+httpx[http2]
+aiofiles
+
+# Azure AI Services
+openai
+azure-search-documents
+azure-ai-vision-imageanalysis
+azure-ai-formrecognizer
+azure-ai-textanalytics
+azure-cognitiveservices-speech
+azure-ai-contentsafety
+azure-ai-agents
+azure-identity
+azure-storage-blob
+
+# Audio/Video Processing
+pydub
+moviepy
+opencv-python-headless
+numpy
+sentence-transformers
+imageio-ffmpeg
+soundfile
+
+# Document Processing
+PyPDF2
+pypdf
+pdfplumber
+python-docx
+reportlab
+
+# Data Processing
+pandas
+openpyxl
+duckdb
+bcrypt==4.0.1
+passlib[bcrypt]==1.7.4
+
+# Agent orchestration & custom-agent tools
+langgraph
+langchain-core
+langchain-openai
+langchain-ollama
+crewai
+litellm
+pymupdf
+beautifulsoup4
+ddgs
+markdown
+matplotlib
+msal
+SpeechRecognition
+azure-communication-email
+chromadb
+mcp>=2.0,<3.0
+jsonschema>=4.23,<5.0
+# chromadb needs sqlite3 >= 3.35; the Azure App Service image ships an older
+# one. Linux-only: no Windows wheels exist and local dev already has a new SQLite.
+pysqlite3-binary; sys_platform == "linux"
+
+# Azure App Service (gunicorn + uvicorn workers)
+gunicorn

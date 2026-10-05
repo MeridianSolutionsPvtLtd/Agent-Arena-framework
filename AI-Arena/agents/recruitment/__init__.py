@@ -1,0 +1,3 @@
+"""
+Recruitment Agent module.
+"""

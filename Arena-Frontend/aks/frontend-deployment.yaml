@@ -1,0 +1,70 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: agent-framework
+  namespace: ai-team
+  labels:
+    app: agent-framework
+    component: frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: agent-framework
+  template:
+    metadata:
+      labels:
+        app: agent-framework
+        component: frontend
+    spec:
+      nodeSelector:
+        agentpool: userpool  # Use user node pool for workloads
+      containers:
+        - name: agent-framework
+          image: <ACR_LOGIN_SERVER>/agent-framework:<IMAGE_TAG>
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 80
+              name: http
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "50m"
+            limits:
+              memory: "256Mi"
+              cpu: "200m"
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+          startupProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 20
+            periodSeconds: 10
+            timeoutSeconds: 15
+            failureThreshold: 30
+
+
+
+
+
+
+
+
+
+
+

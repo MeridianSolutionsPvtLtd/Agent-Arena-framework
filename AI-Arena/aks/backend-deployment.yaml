@@ -1,0 +1,357 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: meridianaiarena-backend
+  namespace: ai-team
+  labels:
+    app: meridianaiarena-backend
+spec:
+  replicas: 1  # one replica for availability
+  selector:
+    matchLabels:  
+      app: meridianaiarena-backend
+  template:
+    metadata:
+      labels:
+        app: meridianaiarena-backend
+    spec:
+      nodeSelector:
+        agentpool: userpool  # Use user node pool for workloads
+      containers:
+      - name: meridianaiarena-backend
+        image: <ACR_LOGIN_SERVER>/meridianaiarena-backend:<IMAGE_TAG>
+        ports:
+        - containerPort: 5000
+          name: http
+        env:
+        - name: AZURE_OPENAI_ENDPOINT
+          valueFrom:
+            secretKeyRef:
+              name: meridianaiarena-backend-secrets
+              key: azure-openai-endpoint
+      
+        - name: AZURE_OPENAI_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: meridianaiarena-backend-secrets
+              key: azure-openai-api-key
+        
+        - name: AZURE_OPENAI_DEPLOYMENT_NAME
+          valueFrom:
+            secretKeyRef:
+              name: meridianaiarena-backend-secrets
+              key: azure-openai-deployment-name
+
+        - name: AZURE_OPENAI_IMAGE_ENDPOINT
+          valueFrom:
+            secretKeyRef:
+              name: meridianaiarena-backend-secrets
+              key: azure-openai-image-endpoint
+        
+        - name: AZURE_OPENAI_IMAGE_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: meridianaiarena-backend-secrets
+              key: azure-openai-image-api-key
+
+        - name: AZURE_OPENAI_IMAGE_DEPLOYMENT_NAME
+          valueFrom:
+            secretKeyRef:
+              name: meridianaiarena-backend-secrets
+              key: azure-openai-image-deployment-name
+
+        - name: AZURE_SEARCH_ENDPOINT
+          valueFrom:
+            secretKeyRef:
+              name: meridianaiarena-backend-secrets
+              key: azure-search-endpoint
+
+        - name: AZURE_SEARCH_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: meridianaiarena-backend-secrets
+              key: azure-search-api-key
+          
+        - name: AZURE_VISION_ENDPOINT
+          valueFrom:
+            secretKeyRef:
+              name: meridianaiarena-backend-secrets
+              key: azure-vision-endpoint
+
+        - name: AZURE_VISION_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: meridianaiarena-backend-secrets
+              key: azure-vision-api-key
+
+        - name: AZURE_DOCUMENT_ENDPOINT
+          valueFrom:
+            secretKeyRef:
+              name: meridianaiarena-backend-secrets
+              key: azure-document-endpoint
+          
+        - name: AZURE_DOCUMENT_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: meridianaiarena-backend-secrets
+              key: azure-document-api-key
+
+        - name: AZURE_LANGUAGE_ENDPOINT
+          valueFrom:
+            secretKeyRef:
+              name: meridianaiarena-backend-secrets
+              key: azure-language-endpoint
+
+        - name: AZURE_LANGUAGE_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: meridianaiarena-backend-secrets
+              key: azure-language-api-key
+
+        - name: AZURE_SPEECH_KEY
+          valueFrom:
+            secretKeyRef:
+              name: meridianaiarena-backend-secrets
+              key: azure-speech-key
+
+        - name: AZURE_SPEECH_REGION
+          valueFrom:
+            secretKeyRef:
+              name: meridianaiarena-backend-secrets
+              key: azure-speech-region
+
+        - name: AZURE_TRANSLATOR_KEY
+          valueFrom:
+            secretKeyRef:
+              name: meridianaiarena-backend-secrets
+              key: azure-translator-key
+
+        - name: AZURE_TRANSLATOR_REGION
+          valueFrom:
+            secretKeyRef:
+              name: meridianaiarena-backend-secrets
+              key: azure-translator-region
+
+        - name: AZURE_TRANSLATOR_ENDPOINT
+          valueFrom:
+            secretKeyRef:
+              name: meridianaiarena-backend-secrets
+              key: azure-translator-endpoint
+
+        - name: AZURE_CONTENT_SAFETY_ENDPOINT
+          valueFrom:
+            secretKeyRef:
+              name: meridianaiarena-backend-secrets
+              key: azure-content-safety-endpoint
+
+        - name: AZURE_CONTENT_SAFETY_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: meridianaiarena-backend-secrets
+              key: azure-content-safety-api-key
+
+        - name: AZURE_AI_ENDPOINT
+          valueFrom:
+            secretKeyRef:
+              name: meridianaiarena-backend-secrets
+              key: azure-ai-endpoint
+
+        - name: COMPLIANCE_AGENT_ID
+          valueFrom:
+            secretKeyRef:
+              name: meridianaiarena-backend-secrets
+              key: compliance-agent-id
+
+        - name: ATS_AGENT_ID
+          valueFrom:
+            secretKeyRef:
+              name: meridianaiarena-backend-secrets
+              key: ats-agent-id
+
+        - name: CALL_AUDIT_AGENT_ID
+          valueFrom:
+            secretKeyRef:
+              name: meridianaiarena-backend-secrets
+              key: call-audit-agent-id
+
+        - name: DATA_INSIGHTS_AGENT_ID
+          valueFrom:
+            secretKeyRef:
+              name: meridianaiarena-backend-secrets
+              key: data-insights-agent-id
+
+        - name: LEGAL_AGENT_ID
+          valueFrom:
+            secretKeyRef:
+              name: meridianaiarena-backend-secrets
+              key: legal-agent-id
+          
+        - name: AZURE_CLIENT_ID
+          valueFrom:
+            secretKeyRef:
+              name: meridianaiarena-backend-secrets
+              key: azure-client-id
+
+        - name: AZURE_CLIENT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: meridianaiarena-backend-secrets
+              key: azure-client-secret
+
+        - name: AZURE_TENANT_ID
+          valueFrom:
+            secretKeyRef:
+              name: meridianaiarena-backend-secrets
+              key: azure-tenant-id
+
+        - name: AZURE_VIDEO_VISION_ENDPOINT
+          valueFrom:
+            secretKeyRef:
+              name: meridianaiarena-backend-secrets
+              key: azure-video-vision-endpoint
+
+        - name: AZURE_VIDEO_VISION_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: meridianaiarena-backend-secrets
+              key: azure-video-vision-api-key
+
+        - name: AZURE_VIDEO_SPEECH_KEY
+          valueFrom:
+            secretKeyRef:
+              name: meridianaiarena-backend-secrets
+              key: azure-video-speech-key
+
+        - name: AZURE_VIDEO_SPEECH_REGION
+          valueFrom:
+            secretKeyRef:
+              name: meridianaiarena-backend-secrets
+              key: azure-video-speech-region
+
+        - name: CORS_ORIGINS
+          valueFrom:
+            secretKeyRef:
+              name: meridianaiarena-backend-secrets
+              key: cors-origins
+
+        - name: CREDENTIAL_ENCRYPTION_KEY
+          valueFrom:
+            secretKeyRef:
+              name: meridianaiarena-backend-secrets
+              key: credential-encryption-key
+
+        - name: MONGODB_URI
+          valueFrom:
+            secretKeyRef:
+              name: meridianaiarena-backend-secrets
+              key: mongodb-uri
+
+        - name: MONGODB_NAME
+          valueFrom:
+            secretKeyRef:
+              name: meridianaiarena-backend-secrets
+              key: mongodb-name
+
+        - name: MONGODB_COLLECTION_NAME
+          valueFrom:
+            secretKeyRef:
+              name: meridianaiarena-backend-secrets
+              key: mongodb-collection-name
+
+        - name: JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: meridianaiarena-backend-secrets
+              key: jwt-secret
+
+        - name: JWT_REFRESH_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: meridianaiarena-backend-secrets
+              key: jwt-refresh-secret
+
+        - name: ACCESS_TOKEN_EXPIRE_MINUTES
+          valueFrom:
+            secretKeyRef:
+              name: meridianaiarena-backend-secrets
+              key: access-token-expire-minutes
+
+        - name: REFRESH_TOKEN_EXPIRE_DAYS
+          valueFrom:
+            secretKeyRef:
+              name: meridianaiarena-backend-secrets
+              key: refresh-token-expire-days
+
+        - name: UPLOAD_DIR
+          value: "./uploads"
+
+        - name: MAX_VIDEO_SIZE_MB
+          valueFrom:
+            secretKeyRef:
+              name: meridianaiarena-backend-secrets
+              key: max-video-size-mb
+
+        - name: FRAME_INTERVAL_SECONDS
+          valueFrom:
+            secretKeyRef:
+              name: meridianaiarena-backend-secrets
+              key: frame-interval-seconds
+
+        - name: BLOB_CONNECTION_STRING
+          valueFrom:
+            secretKeyRef:
+              name: meridianaiarena-backend-secrets
+              key: blob-connection-string
+
+        - name: CONTAINER_NAME
+          valueFrom:
+            secretKeyRef:
+              name: meridianaiarena-backend-secrets
+              key: container-name
+
+        - name: DATABASE_TYPE
+          valueFrom:
+            secretKeyRef:
+              name: meridianaiarena-backend-secrets
+              key: database-type
+
+        - name: DB_NAME
+          valueFrom:
+            secretKeyRef:
+              name: meridianaiarena-backend-secrets
+              key: db-name
+              
+        resources:
+          requests:
+            memory: "1Gi"
+            cpu: "500m"  # 0.100 CPU core
+          limits:
+            memory: "2Gi" 
+            cpu: "2000m"  # 0.500 CPU cores
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 5000
+          initialDelaySeconds: 300
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /health  # Use /health for now - app is functional even if models still loading
+            port: 5000
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          timeoutSeconds: 3
+          failureThreshold: 3
+        startupProbe:
+          httpGet:
+            path: /health
+            port: 5000
+          initialDelaySeconds: 20
+          periodSeconds: 10
+          timeoutSeconds: 15
+          failureThreshold: 30  # Allow up to 300 seconds for model loading (YOLO + Florence)
+
+
+

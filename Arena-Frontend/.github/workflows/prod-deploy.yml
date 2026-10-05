@@ -1,0 +1,192 @@
+name: Build & Deploy Frontend (prod)
+
+on:
+  push:
+    branches:
+      - prod
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    env:
+      ACR_NAME: ${{ secrets.ACR_NAME }}
+      AKS_RG: ${{ secrets.AKS_RG }}
+      AKS_CLUSTER: ${{ secrets.AKS_CLUSTER }}
+      ACR_RG: ${{ secrets.ACR_RG }}  # optional
+      # We will pass VITE_BACKEND_URL as a build-arg (relative path /backend)
+      BUILD_BACKEND_URL: "/api"
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      # =============================
+      # Azure Login
+      # =============================
+      - name: Login to Azure
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+      # =============================
+      # Identity & Subscription Debug
+      # =============================
+      - name: 🔍 Azure Identity Debug
+        run: |
+          echo "========== AZ ACCOUNT SHOW =========="
+          az account show --output json
+          echo "========== AZ ACCOUNT LIST =========="
+          az account list --output table
+          echo "========== CURRENT IDENTITY =========="
+          az account show --query user --output json
+          echo "========== SERVICE PRINCIPAL OBJECT ID =========="
+          az ad sp show \
+            --id $(az account show --query user.name -o tsv) \
+            --query "{appId:appId, objectId:id, displayName:displayName}" \
+            --output json || echo "SP lookup failed"
+      # =============================
+      # Force correct subscription
+      # =============================
+      - name: Set correct subscription
+        run: |
+          az account set --subscription $(az account show --query id -o tsv)
+          echo "Active subscription:"
+          az account show --query "{id:id, name:name}" --output table
+      # =============================
+      # Role Assignments (Subscription)
+      # =============================
+      - name: 🔍 Subscription Role Assignments
+        run: |
+          SP_ID=$(az account show --query user.name -o tsv)
+          SUB_ID=$(az account show --query id -o tsv)
+          echo "Service Principal: $SP_ID"
+          echo "Subscription: $SUB_ID"
+          az role assignment list \
+            --assignee $SP_ID \
+            --subscription $SUB_ID \
+            --output table
+      # =============================
+      # AKS tooling
+      # =============================
+      - name: Ensure Azure CLI AKS tooling
+        run: |
+          az version
+          az aks install-cli
+
+      - name: Set AKS credentials
+        run: |
+          az aks get-credentials --resource-group ${{ secrets.AKS_RG }} --name ${{ secrets.AKS_CLUSTER }} --overwrite-existing
+
+
+      - name: Ensure kubectl is available
+        run: |
+          kubectl version --client
+        
+      # =============================
+      # ACR Permission Debug (CRITICAL)
+      # =============================
+      - name: 🔍 ACR Permission Debug (fixed)
+        shell: bash
+        env:
+          ACR_NAME: ${{ secrets.ACR_NAME }}
+          AKS_RG: ${{ secrets.AKS_RG }}
+          ACR_RG: ${{ secrets.ACR_RG }} # optional
+        run: |
+          set -euo pipefail
+      
+          echo "==== Quick AZ & CLI info ===="
+          az --version || true
+          az account show --query "{subscription:id, user:user.name}" -o table
+      
+          echo
+          echo "==== Locate ACR resource id (again) ===="
+          SUB_ID=$(az account show --query id -o tsv)
+          ACR_NAME="${ACR_NAME:-}"
+          ACR_RG="${ACR_RG:-}"
+          if [ -n "${ACR_RG}" ]; then
+            ACR_ID=$(az acr show --name "$ACR_NAME" --resource-group "$ACR_RG" --query id -o tsv 2>/dev/null || true)
+          else
+            ACR_ID=$(az acr show --name "$ACR_NAME" --resource-group "${AKS_RG:-}" --query id -o tsv 2>/dev/null || true)
+            if [ -z "$ACR_ID" ]; then
+              ACR_ID=$(az acr list --query "[?name=='$ACR_NAME'].id | [0]" -o tsv || true)
+            fi
+          fi
+      
+          echo "ACR_ID length: ${#ACR_ID}"
+          if [ -z "$ACR_ID" ]; then
+            echo "ERROR: ACR not found. Listing registries for debugging:"
+            az acr list -o table
+            exit 1
+          fi
+      
+          echo "ACR_ID discovered."
+      
+          # Extract registry name and rg from the resource id (robust)
+          REG_NAME="${ACR_ID##*/}"                                      # last path segment after /registries/
+          RG_NAME=$(echo "$ACR_ID" | sed -n 's#.*/resourceGroups/\([^/]*\)/.*#\1#p')
+      
+          echo "Extracted registry name length: ${#REG_NAME}"
+          echo "Extracted resource group length: ${#RG_NAME}"
+      
+          # Try az acr show using --ids first (best-effort), then fallback to --name/--resource-group
+          echo
+          echo "Trying az acr show --ids (may fail on some setups)..."
+          if az acr show --ids "$ACR_ID" --query "{name:name, loginServer:loginServer, sku:sku.name}" -o table 2>/dev/null; then
+            echo "az acr show --ids succeeded."
+          else
+            echo "az acr show --ids failed — falling back to --name/--resource-group"
+            echo "Calling: az acr show --name '$REG_NAME' --resource-group '$RG_NAME'"
+            az acr show --name "$REG_NAME" --resource-group "$RG_NAME" --query "{name:name, loginServer:loginServer, sku:sku.name}" -o table || echo "az acr show with name/rg failed"
+          fi
+      
+          echo
+          echo "==== Role assignments on ACR resource ===="
+          az role assignment list --scope "$ACR_ID" -o table || echo "role assignment list failed"
+      
+          echo
+          echo "==== Role assignments for current principal on ACR ===="
+          SP_NAME=$(az account show --query user.name -o tsv)
+          SP_OBJECT_ID=$(az ad sp show --id "$SP_NAME" --query id -o tsv 2>/dev/null || true)
+          if [ -n "${SP_OBJECT_ID:-}" ]; then
+            az role assignment list --assignee "$SP_OBJECT_ID" --scope "$ACR_ID" -o table || echo "no assignments for $SP_OBJECT_ID"
+          else
+            az role assignment list --assignee "$SP_NAME" --scope "$ACR_ID" -o table || echo "no assignments for $SP_NAME"
+          fi
+      
+          echo "==== End ACR robust debug ===="
+      # =============================
+      # Explicit ACR login
+      # =============================
+      - name: Login to ACR
+        run: |
+          az acr login --name ${{ secrets.ACR_NAME }}
+    
+      - name: Ensure kubectl is available
+        run: |
+          kubectl version --client
+
+
+      - name: Build frontend image (PowerShell)
+        shell: pwsh
+        run: |
+          $backendUrl = "${{ env.BUILD_BACKEND_URL }}"
+          $fullSha = "${{ github.sha }}"
+          $shortTag = $fullSha.Substring(0,8)
+          Write-Host "Using backend URL for build: $backendUrl"
+          ./build-frontend.ps1 -AcrName ${{ secrets.ACR_NAME }} -ImageName "agent-framework" -ImageTag $shortTag -BuildArgBackendUrl $backendUrl
+
+      - name: Deploy frontend (PowerShell)
+        shell: pwsh
+        env:
+          ACR_NAME: ${{ secrets.ACR_NAME }}
+        run: |
+          # trim image tag to short form used by deploy.ps1 if desired
+          $imageTag = "${{ github.sha }}"
+          if ($imageTag.Length -gt 8) { $imageTag = $imageTag.Substring(0,8) }
+          
+      
+          # call deploy.ps1 and pass the component=frontend
+          ./deploy.ps1 -Components frontend -AcrLoginServer "${{ secrets.ACR_NAME }}.azurecr.io" -ImageTag $imageTag
+
+
+
+

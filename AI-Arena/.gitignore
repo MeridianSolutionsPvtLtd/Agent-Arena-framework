@@ -1,0 +1,88 @@
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+# Anchor to repo root only. A bare "lib/" also matches antenv/lib/ and
+# upload-artifact would strip the App Service virtualenv site-packages.
+/lib/
+/lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual Environment
+venv/
+ENV/
+env/
+.venv/
+antenv/
+Include/
+/Lib/
+share/
+# Do not ignore pyvenv.cfg globally — it breaks shipping antenv in CI.
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Jupyter Notebooks
+.ipynb_checkpoints/
+
+# PyTorch / ML Models (optional - uncomment if you don't want to track models)
+# *.pt
+# *.pth
+# *.onnx
+
+# HuggingFace cache
+.cache/
+huggingface/
+
+# Local images folder
+images/
+uploads/
+
+# Logs
+*.log
+logs/
+
+# Local Chroma vector index (regenerated per environment)
+.chroma/
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Test and coverage
+.pytest_cache/
+.pytest-*-temp*/
+.coverage
+htmlcov/
+.tox/
+.nox/
+
+# Distribution
+*.tar.gz
+*.zip
+
+secrets.env

@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: meridianaiarena-backend-service
+  namespace: ai-team
+  labels:
+    app: meridianaiarena-backend
+spec:
+  type: ClusterIP  # Internal service only; use Ingress for external access
+  ports:
+  - port: 80
+    targetPort: 5000
+    protocol: TCP
+    name: http
+  selector:
+    app: meridianaiarena-backend
+  sessionAffinity: ClientIP  # Sticky sessions for better performance
+

@@ -1,0 +1,46 @@
+# Virtual environment
+venv/
+.venv/
+ENV/
+
+# Git
+.git/
+.github/
+.gitignore
+
+# IDE
+.vscode/
+.idea/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Environment files (build-time secrets should use Docker secrets)
+.env
+.env.local
+
+# Local images and data (will be created at runtime)
+images/
+uploads/
+databases/
+
+# Logs
+*.log
+logs/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Docker files (no need to copy into image)
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+scripts/
+secrets.env
+
+
+
